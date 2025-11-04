@@ -4,7 +4,11 @@ export type Approach = 'defend-maneuver' | 'advance-attack' | 'evade-observe' | 
 // Stance result from rolling dice
 export interface Stance {
   result: number; // The dice roll result
-  techniquesAllowed: number; // Number of techniques allowed based on stance
+  techniquesAllowed: number; // Number of techniques allowed based on stance (for NPCs)
+  // Technique availability for PCs based on Avatar Legends rules
+  canUseBasicMastered: number; // How many basic/mastered techniques
+  canUseLearnedPracticed: boolean; // Can use learned (with fatigue) or practiced
+  requiresBalanceShift: boolean; // 6- requires balance shift to use technique
 }
 
 // Balance tracker - represents opposing values
@@ -17,7 +21,11 @@ export interface Balance {
 }
 
 // Conditions that can affect characters
-export type ConditionType = 'afraid' | 'angry' | 'guilty' | 'insecure' | 'troubled';
+export type ConditionType = 'afraid' | 'angry' | 'guilty' | 'insecure' | 'troubled' |
+  'foolish' | 'desperate' | 'jaded' | 'despondent' | 'hopeless' | 'frantic' |
+  'disgusted' | 'morose' | 'manic' | 'offended' | 'humiliated' | 'fixated' |
+  'frustrated' | 'vengeful' | 'stubborn' | 'distracted' | 'overbearing' |
+  'zealous' | 'overconfident';
 
 export interface Condition {
   type: ConditionType;
@@ -50,9 +58,12 @@ export interface Character {
   // Combat exchange state
   approach: Approach;
   stance: Stance | null;
+  techniquesModifier: number; // Manual adjustment to techniques (e.g., from balance shift)
+  selectedTechniques: SelectedTechnique[]; // Techniques selected for current exchange
 
   // Core stats
-  fatigue: number; // 0-5 typically
+  fatigue: number; // Current fatigue
+  maxFatigue: number; // Maximum fatigue (varies by character)
   balance: Balance;
 
   // Conditions and effects
@@ -69,11 +80,34 @@ export interface Character {
   };
 }
 
+// Technique mastery levels (only track advanced techniques - basic are universal)
+export type TechniqueLevel = 'learned' | 'practiced' | 'mastered';
+
+// Training types
+export type TrainingType = 'universal' | 'air' | 'water' | 'earth' | 'fire' | 'weapons' | 'technology' | 'group';
+
+// Character's learned technique (part of character sheet)
+export interface CharacterTechnique {
+  id: string;
+  name: string;
+  level: TechniqueLevel;
+  training: TrainingType;
+}
+
+// Selected technique for current exchange
+export interface SelectedTechnique {
+  techniqueId: string; // References CharacterTechnique.id or 'basic' for basic techniques
+  name: string;
+  level: TechniqueLevel | 'basic';
+  costsFatigue: boolean; // True for learned techniques
+}
+
 // Player Character with playbook info
 export interface PC extends Character {
   type: 'pc';
   playbook: string; // e.g., "The Bold", "The Guardian"
   training?: string[]; // Types of training (Air, Earth, Fire, Water, Weapons)
+  techniques: CharacterTechnique[]; // PC's learned techniques
 }
 
 // Non-Player Character

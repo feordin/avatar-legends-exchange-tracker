@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build)",
+      "WebSearch",
+      "WebFetch(domain:app.demiplane.com)",
+      "Bash(npm run dev:*)",
+      "Read(//c/Users/jaerwin/OneDrive/Books/Avatar/**)",
+      "Read(//c/Users/jaerwin/Downloads/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

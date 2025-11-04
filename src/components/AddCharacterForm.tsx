@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useExchange } from '../context/ExchangeContext';
 import { useTemplates } from '../hooks/useTemplates';
 import type { PC, NPC, Condition } from '../types';
-import { createDefaultBalance } from '../utils/helpers';
+import { createDefaultBalance, PLAYBOOK_BALANCE } from '../utils/helpers';
 import './AddCharacterForm.css';
 
 interface AddCharacterFormProps {
@@ -22,6 +22,7 @@ const AddCharacterForm: React.FC<AddCharacterFormProps> = ({ type, onClose }) =>
   const { addPC, addNPC } = useExchange();
   const { saveTemplate } = useTemplates();
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
+  const [selectedPlaybook, setSelectedPlaybook] = useState('');
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,20 +30,38 @@ const AddCharacterForm: React.FC<AddCharacterFormProps> = ({ type, onClose }) =>
 
     const name = formData.get('name') as string;
     const imageUrl = formData.get('imageUrl') as string;
-    const leftPrinciple = formData.get('leftPrinciple') as string;
-    const rightPrinciple = formData.get('rightPrinciple') as string;
 
-    const balance = createDefaultBalance(
-      leftPrinciple || 'Control',
-      rightPrinciple || 'Freedom'
-    );
+    // Get balance from playbook for PCs, or from form for NPCs
+    let balance;
+    if (type === 'pc' && selectedPlaybook && PLAYBOOK_BALANCE[selectedPlaybook]) {
+      const principles = PLAYBOOK_BALANCE[selectedPlaybook];
+      balance = createDefaultBalance(principles.left, principles.right);
+    } else {
+      // For NPCs, get from form inputs
+      const leftPrinciple = formData.get('leftPrinciple') as string;
+      const rightPrinciple = formData.get('rightPrinciple') as string;
+      balance = createDefaultBalance(
+        leftPrinciple || 'Control',
+        rightPrinciple || 'Freedom'
+      );
+    }
+
+    // Determine maxFatigue based on character type
+    let maxFatigue = 5; // Default for PCs
+    if (type === 'npc') {
+      const difficulty = formData.get('difficulty') as 'minor' | 'moderate' | 'major';
+      maxFatigue = difficulty === 'minor' ? 3 : 5; // minor=3, moderate/major=5
+    }
 
     const baseCharacter = {
       name,
       imageUrl: imageUrl || undefined,
       approach: 'none' as const,
       stance: null,
+      techniquesModifier: 0,
+      selectedTechniques: [],
       fatigue: 0,
+      maxFatigue,
       balance,
       conditions: [...defaultConditions],
       statuses: [],
@@ -56,17 +75,24 @@ const AddCharacterForm: React.FC<AddCharacterFormProps> = ({ type, onClose }) =>
     };
 
     if (type === 'pc') {
-      const playbook = formData.get('playbook') as string;
-      const training = (formData.get('training') as string)
-        .split(',')
-        .map(t => t.trim())
-        .filter(t => t.length > 0);
+      const playbook = selectedPlaybook;
+      const training: string[] = [];
+
+      // Collect checked training types
+      if (formData.get('training-air')) training.push('Air');
+      if (formData.get('training-water')) training.push('Water');
+      if (formData.get('training-earth')) training.push('Earth');
+      if (formData.get('training-fire')) training.push('Fire');
+      if (formData.get('training-weapons')) training.push('Weapons');
+      if (formData.get('training-technology')) training.push('Technology');
+      if (formData.get('training-group')) training.push('Group');
 
       const pc: Omit<PC, 'id'> = {
         ...baseCharacter,
         type: 'pc',
         playbook,
         training: training.length > 0 ? training : undefined,
+        techniques: [], // Start with no techniques, add them later
       };
 
       if (saveAsTemplate) {
@@ -124,29 +150,80 @@ const AddCharacterForm: React.FC<AddCharacterFormProps> = ({ type, onClose }) =>
         <>
           <div className="form-group">
             <label htmlFor="playbook">Playbook *</label>
-            <select id="playbook" name="playbook" required>
+            <select
+              id="playbook"
+              name="playbook"
+              value={selectedPlaybook}
+              onChange={(e) => setSelectedPlaybook(e.target.value)}
+              required
+            >
               <option value="">Select playbook...</option>
+              <option value="The Adamant">The Adamant</option>
+              <option value="The Adrift">The Adrift</option>
+              <option value="The Architect">The Architect</option>
+              <option value="The Aspirant">The Aspirant</option>
+              <option value="The Authority">The Authority</option>
               <option value="The Bold">The Bold</option>
+              <option value="The Bound">The Bound</option>
+              <option value="The Broken">The Broken</option>
+              <option value="The Destined">The Destined</option>
+              <option value="The Elder">The Elder</option>
+              <option value="The Foundling">The Foundling</option>
               <option value="The Guardian">The Guardian</option>
               <option value="The Hammer">The Hammer</option>
               <option value="The Icon">The Icon</option>
               <option value="The Idealist">The Idealist</option>
+              <option value="The Outcast">The Outcast</option>
               <option value="The Pillar">The Pillar</option>
               <option value="The Prodigy">The Prodigy</option>
-              <option value="The Successor">The Successor</option>
-              <option value="The Adamant">The Adamant</option>
+              <option value="The Razor">The Razor</option>
               <option value="The Rogue">The Rogue</option>
+              <option value="The Successor">The Successor</option>
             </select>
           </div>
 
+          {/* Show balance principles for selected playbook */}
+          {selectedPlaybook && PLAYBOOK_BALANCE[selectedPlaybook] && (
+            <div className="form-group">
+              <label>Balance Principles (from playbook):</label>
+              <div style={{ padding: '0.75rem', backgroundColor: '#1a1a1a', borderRadius: '4px', color: '#ccc' }}>
+                {PLAYBOOK_BALANCE[selectedPlaybook].left} ↔ {PLAYBOOK_BALANCE[selectedPlaybook].right}
+              </div>
+            </div>
+          )}
+
           <div className="form-group">
-            <label htmlFor="training">Training</label>
-            <input
-              type="text"
-              id="training"
-              name="training"
-              placeholder="Air, Water, Fire, etc. (comma-separated)"
-            />
+            <label>Training Types</label>
+            <div className="training-checkboxes">
+              <label className="checkbox-label">
+                <input type="checkbox" name="training-air" />
+                <span>Air</span>
+              </label>
+              <label className="checkbox-label">
+                <input type="checkbox" name="training-water" />
+                <span>Water</span>
+              </label>
+              <label className="checkbox-label">
+                <input type="checkbox" name="training-earth" />
+                <span>Earth</span>
+              </label>
+              <label className="checkbox-label">
+                <input type="checkbox" name="training-fire" />
+                <span>Fire</span>
+              </label>
+              <label className="checkbox-label">
+                <input type="checkbox" name="training-weapons" />
+                <span>Weapons</span>
+              </label>
+              <label className="checkbox-label">
+                <input type="checkbox" name="training-technology" />
+                <span>Technology</span>
+              </label>
+              <label className="checkbox-label">
+                <input type="checkbox" name="training-group" />
+                <span>Group</span>
+              </label>
+            </div>
           </div>
         </>
       ) : (
@@ -173,29 +250,32 @@ const AddCharacterForm: React.FC<AddCharacterFormProps> = ({ type, onClose }) =>
         </>
       )}
 
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="leftPrinciple">Left Principle</label>
-          <input
-            type="text"
-            id="leftPrinciple"
-            name="leftPrinciple"
-            placeholder="e.g., Control"
-            defaultValue="Control"
-          />
-        </div>
+      {/* Balance principles are now automatic for PCs based on playbook */}
+      {type === 'npc' && (
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="leftPrinciple">Left Principle</label>
+            <input
+              type="text"
+              id="leftPrinciple"
+              name="leftPrinciple"
+              placeholder="e.g., Control"
+              defaultValue="Control"
+            />
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="rightPrinciple">Right Principle</label>
-          <input
-            type="text"
-            id="rightPrinciple"
-            name="rightPrinciple"
-            placeholder="e.g., Freedom"
-            defaultValue="Freedom"
-          />
+          <div className="form-group">
+            <label htmlFor="rightPrinciple">Right Principle</label>
+            <input
+              type="text"
+              id="rightPrinciple"
+              name="rightPrinciple"
+              placeholder="e.g., Freedom"
+              defaultValue="Freedom"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="form-group save-template-section">
         <label className="checkbox-label">

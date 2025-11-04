@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { ExchangeState, PC, NPC, AnyCharacter, Approach, Condition, Status, Modifier } from '../types';
-import { generateId, rollStance } from '../utils/helpers';
+import type { ExchangeState, PC, NPC, AnyCharacter, Approach, Condition, Status, Modifier, CharacterTechnique, TechniqueLevel, SelectedTechnique } from '../types';
+import { generateId, rollStance, calculateStanceFromRoll } from '../utils/helpers';
 
 interface ExchangeContextType {
   state: ExchangeState;
@@ -10,6 +10,8 @@ interface ExchangeContextType {
   updateCharacter: (id: string, updates: Partial<AnyCharacter>) => void;
   setApproach: (id: string, approach: Approach) => void;
   rollStanceForCharacter: (id: string) => void;
+  setStanceManually: (id: string, rollResult: number) => void;
+  modifyTechniques: (id: string, amount: number) => void;
   modifyFatigue: (id: string, amount: number) => void;
   modifyBalance: (id: string, amount: number) => void;
   toggleCondition: (id: string, conditionType: Condition['type']) => void;
@@ -17,6 +19,12 @@ interface ExchangeContextType {
   removeStatus: (id: string, statusId: string) => void;
   addModifier: (id: string, modifier: Modifier) => void;
   removeModifier: (id: string, modifierId: string) => void;
+  addTechnique: (id: string, technique: CharacterTechnique) => void;
+  removeTechnique: (id: string, techniqueId: string) => void;
+  updateTechniqueLevel: (id: string, techniqueId: string, level: TechniqueLevel) => void;
+  selectTechnique: (id: string, technique: SelectedTechnique) => void;
+  unselectTechnique: (id: string, techniqueId: string) => void;
+  clearSelectedTechniques: (id: string) => void;
   resetCharacterToBase: (id: string) => void;
   clearExchange: () => void;
   nextPhase: () => void;
@@ -76,6 +84,23 @@ export const ExchangeProvider: React.FC<{ children: ReactNode }> = ({ children }
   const rollStanceForCharacter = (id: string) => {
     const stance = rollStance();
     updateCharacter(id, { stance });
+  };
+
+  const setStanceManually = (id: string, rollResult: number) => {
+    const stance = calculateStanceFromRoll(rollResult);
+    updateCharacter(id, { stance });
+  };
+
+  const modifyTechniques = (id: string, amount: number) => {
+    setState(prev => ({
+      ...prev,
+      pcs: prev.pcs.map(pc =>
+        pc.id === id ? { ...pc, techniquesModifier: pc.techniquesModifier + amount } : pc
+      ),
+      npcs: prev.npcs.map(npc =>
+        npc.id === id ? { ...npc, techniquesModifier: npc.techniquesModifier + amount } : npc
+      ),
+    }));
   };
 
   const modifyFatigue = (id: string, amount: number) => {
@@ -204,6 +229,74 @@ export const ExchangeProvider: React.FC<{ children: ReactNode }> = ({ children }
     }));
   };
 
+  const addTechnique = (id: string, technique: CharacterTechnique) => {
+    setState(prev => ({
+      ...prev,
+      pcs: prev.pcs.map(pc =>
+        pc.id === id ? { ...pc, techniques: [...pc.techniques, technique] } : pc
+      ),
+    }));
+  };
+
+  const removeTechnique = (id: string, techniqueId: string) => {
+    setState(prev => ({
+      ...prev,
+      pcs: prev.pcs.map(pc =>
+        pc.id === id ? { ...pc, techniques: pc.techniques.filter(t => t.id !== techniqueId) } : pc
+      ),
+    }));
+  };
+
+  const updateTechniqueLevel = (id: string, techniqueId: string, level: TechniqueLevel) => {
+    setState(prev => ({
+      ...prev,
+      pcs: prev.pcs.map(pc =>
+        pc.id === id ? {
+          ...pc,
+          techniques: pc.techniques.map(t =>
+            t.id === techniqueId ? { ...t, level } : t
+          )
+        } : pc
+      ),
+    }));
+  };
+
+  const selectTechnique = (id: string, technique: SelectedTechnique) => {
+    setState(prev => ({
+      ...prev,
+      pcs: prev.pcs.map(pc =>
+        pc.id === id ? { ...pc, selectedTechniques: [...pc.selectedTechniques, technique] } : pc
+      ),
+      npcs: prev.npcs.map(npc =>
+        npc.id === id ? { ...npc, selectedTechniques: [...npc.selectedTechniques, technique] } : npc
+      ),
+    }));
+  };
+
+  const unselectTechnique = (id: string, techniqueId: string) => {
+    setState(prev => ({
+      ...prev,
+      pcs: prev.pcs.map(pc =>
+        pc.id === id ? { ...pc, selectedTechniques: pc.selectedTechniques.filter(t => t.techniqueId !== techniqueId) } : pc
+      ),
+      npcs: prev.npcs.map(npc =>
+        npc.id === id ? { ...npc, selectedTechniques: npc.selectedTechniques.filter(t => t.techniqueId !== techniqueId) } : npc
+      ),
+    }));
+  };
+
+  const clearSelectedTechniques = (id: string) => {
+    setState(prev => ({
+      ...prev,
+      pcs: prev.pcs.map(pc =>
+        pc.id === id ? { ...pc, selectedTechniques: [] } : pc
+      ),
+      npcs: prev.npcs.map(npc =>
+        npc.id === id ? { ...npc, selectedTechniques: [] } : npc
+      ),
+    }));
+  };
+
   const resetCharacterToBase = (id: string) => {
     setState(prev => ({
       ...prev,
@@ -217,6 +310,8 @@ export const ExchangeProvider: React.FC<{ children: ReactNode }> = ({ children }
             statuses: pc.baseState.statuses.map(s => ({ ...s })),
             approach: 'none',
             stance: null,
+            techniquesModifier: 0,
+            selectedTechniques: [],
             modifiers: [],
           };
         }
@@ -232,6 +327,8 @@ export const ExchangeProvider: React.FC<{ children: ReactNode }> = ({ children }
             statuses: npc.baseState.statuses.map(s => ({ ...s })),
             approach: 'none',
             stance: null,
+            techniquesModifier: 0,
+            selectedTechniques: [],
             modifiers: [],
           };
         }
@@ -270,6 +367,8 @@ export const ExchangeProvider: React.FC<{ children: ReactNode }> = ({ children }
         updateCharacter,
         setApproach,
         rollStanceForCharacter,
+        setStanceManually,
+        modifyTechniques,
         modifyFatigue,
         modifyBalance,
         toggleCondition,
@@ -277,6 +376,12 @@ export const ExchangeProvider: React.FC<{ children: ReactNode }> = ({ children }
         removeStatus,
         addModifier,
         removeModifier,
+        addTechnique,
+        removeTechnique,
+        updateTechniqueLevel,
+        selectTechnique,
+        unselectTechnique,
+        clearSelectedTechniques,
         resetCharacterToBase,
         clearExchange,
         nextPhase,
