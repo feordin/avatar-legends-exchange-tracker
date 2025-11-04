@@ -2,6 +2,52 @@
 
 A single-page web application that helps Game Masters track combat exchanges in the Avatar Legends: The Roleplaying Game.
 
+## Description
+
+This tracker is designed to streamline the complex mechanics of Avatar Legends combat exchanges by providing:
+- **Real-time stat tracking** for up to 6 PCs and 6 NPCs on a single screen
+- **Automated calculations** for action order, stance rolls, and technique counts
+- **Comprehensive state management** including fatigue, balance, conditions, statuses, and modifiers
+- **Offline functionality** with local storage persistence - no internet connection required
+- **Template system** to save and quickly load frequently-used characters
+
+Built with React and TypeScript, this tool eliminates the need for manual tracking sheets and dice calculators, allowing GMs to focus on storytelling while the app handles the mechanical overhead.
+
+## Quick Start
+
+### Installation and Development
+
+```bash
+# Clone the repository
+git clone https://github.com/feordin/avatar-legends-exchange-tracker.git
+cd avatar-legends-exchange-tracker
+
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`
+
+### Building for Production
+
+```bash
+# Create optimized production build
+npm run build
+
+# Preview production build locally (optional)
+npm run preview
+```
+
+The production-ready files will be in the `dist/` directory, which can be deployed to any static hosting service (Netlify, Vercel, GitHub Pages, etc.).
+
+### Prerequisites
+
+- **Node.js** v16 or higher
+- **npm** v7 or higher (comes with Node.js)
+
 ## Features
 
 ### Character Management
@@ -33,40 +79,6 @@ A single-page web application that helps Game Masters track combat exchanges in 
 - Fully functional without an internet connection
 - All data stored locally in browser storage
 - No server required
-
-## Getting Started
-
-### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/avatar-legends-exchange-tracker.git
-cd avatar-legends-exchange-tracker
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Start the development server:
-```bash
-npm run dev
-```
-
-4. Open your browser to `http://localhost:5173`
-
-### Building for Production
-
-```bash
-npm run build
-```
-
-The built files will be in the `dist` directory, ready to deploy to any static hosting service.
 
 ## Usage
 
@@ -115,6 +127,39 @@ The built files will be in the `dist` directory, ready to deploy to any static h
 - **Vite** - Build tool and dev server
 - **CSS3** - Styling with responsive design
 - **Local Storage API** - Data persistence
+
+## Available Scripts
+
+In the project directory, you can run:
+
+### `npm run dev`
+Starts the development server with hot module replacement at `http://localhost:5173`
+
+### `npm run build`
+Builds the app for production to the `dist` folder. It correctly bundles React in production mode and optimizes the build for the best performance.
+
+### `npm run preview`
+Locally preview the production build before deploying.
+
+### `npm run lint`
+Runs ESLint to check code quality and consistency.
+
+## Deployment
+
+The built application is a static site that can be deployed to any static hosting service:
+
+**Netlify / Vercel:**
+- Connect your repository and set build command to `npm run build`
+- Set publish directory to `dist`
+
+**GitHub Pages:**
+```bash
+npm run build
+# Deploy the dist/ folder to gh-pages branch
+```
+
+**Other Static Hosts:**
+Simply upload the contents of the `dist/` folder after running `npm run build`
 
 ## Project Structure
 
