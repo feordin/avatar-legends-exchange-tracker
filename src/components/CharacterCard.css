@@ -1,0 +1,346 @@
+.character-card {
+  background-color: #1e1e1e;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+  transition: border-color 0.2s;
+}
+
+.character-card.pc {
+  border-color: #4a9eff;
+}
+
+.character-card.npc {
+  border-color: #ff6b6b;
+}
+
+.character-card:hover {
+  border-color: #646cff;
+}
+
+/* Header */
+.character-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #333;
+}
+
+.character-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-color: #333;
+}
+
+.character-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholder-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #646cff;
+}
+
+.character-name-section {
+  flex: 1;
+}
+
+.character-name-section h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #fff;
+}
+
+.playbook,
+.role {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.remove-btn {
+  background: transparent;
+  border: none;
+  color: #ff6b6b;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-btn:hover {
+  color: #ff4444;
+  background-color: rgba(255, 107, 107, 0.1);
+  border-radius: 4px;
+}
+
+/* Stat Rows */
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-row label {
+  font-weight: 600;
+  min-width: 80px;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.stat-row select {
+  flex: 1;
+  padding: 0.4rem;
+  font-size: 0.9rem;
+}
+
+/* Stance */
+.stance-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.stance-result {
+  font-size: 0.9rem;
+  color: #4a9eff;
+}
+
+.no-stance {
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* Fatigue */
+.fatigue-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fatigue-value {
+  min-width: 30px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1rem;
+  color: #ff9f43;
+}
+
+/* Balance */
+.balance-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.balance-value {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #9b59b6;
+}
+
+/* Buttons */
+.small-btn {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+  min-width: 30px;
+}
+
+.small-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Conditions */
+.conditions-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.conditions-section label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.conditions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+}
+
+.condition-btn {
+  padding: 0.4rem;
+  font-size: 0.75rem;
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  text-transform: capitalize;
+  transition: all 0.2s;
+}
+
+.condition-btn.marked {
+  background-color: #ff6b6b;
+  border-color: #ff6b6b;
+  color: #fff;
+}
+
+.condition-btn:hover {
+  border-color: #646cff;
+}
+
+/* List Sections */
+.list-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list-header label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.list-item {
+  background-color: #2a2a2a;
+  padding: 0.5rem;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.list-item strong {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.list-item p {
+  margin: 0.25rem 0 0 0;
+  color: #999;
+  font-size: 0.8rem;
+}
+
+.modifier-badge {
+  background-color: #4a9eff;
+  color: #fff;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+}
+
+.remove-item-btn {
+  background: transparent;
+  border: none;
+  color: #ff6b6b;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.remove-item-btn:hover {
+  color: #ff4444;
+}
+
+/* Forms */
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  background-color: #2a2a2a;
+  padding: 0.75rem;
+  border-radius: 4px;
+}
+
+.add-form input,
+.add-form select {
+  font-size: 0.85rem;
+}
+
+.add-form button {
+  font-size: 0.85rem;
+  padding: 0.4rem;
+}
+
+/* Actions */
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #333;
+}
+
+.action-btn {
+  flex: 1;
+  font-size: 0.85rem;
+  background-color: #333;
+}
+
+.action-btn:hover {
+  background-color: #444;
+}
+
+/* Scrollbar styling */
+.list-items::-webkit-scrollbar {
+  width: 6px;
+}
+
+.list-items::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 3px;
+}
+
+.list-items::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 3px;
+}
+
+.list-items::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
