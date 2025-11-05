@@ -4,7 +4,6 @@ import { useExchange } from '../context/ExchangeContext';
 import { useTemplates } from '../hooks/useTemplates';
 import {
   getBalanceDisplay,
-  calculateTechniquesAllowed,
   generateId,
   STATUS_PRESETS,
   TECHNIQUES,
@@ -55,11 +54,6 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character }) => {
   const [editTraining, setEditTraining] = useState<string[]>([]);
 
   const isPc = character.type === 'pc';
-  const techniquesAllowed = calculateTechniquesAllowed(
-    character.stance,
-    character.techniquesModifier,
-    character.statuses
-  );
 
   const handleApproachChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setApproach(character.id, e.target.value as Approach);
@@ -370,22 +364,22 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character }) => {
         </select>
       </div>
 
-      {/* Stance and Techniques */}
-      <div className="stat-row">
-        <label>Stance:</label>
-        <div className="stance-section">
-          <input
-            type="number"
-            min="2"
-            max="12"
-            className="stance-input"
-            value={character.stance?.result || ''}
-            onChange={handleStanceInputChange}
-            placeholder="2-12"
-          />
-          <span className="stance-result">
-            {character.stance ? (
-              isPc ? (
+      {/* Stance and Techniques (PC only) */}
+      {isPc && (
+        <div className="stat-row">
+          <label>Stance:</label>
+          <div className="stance-section">
+            <input
+              type="number"
+              min="2"
+              max="12"
+              className="stance-input"
+              value={character.stance?.result || ''}
+              onChange={handleStanceInputChange}
+              placeholder="2-12"
+            />
+            <span className="stance-result">
+              {character.stance ? (
                 <>
                   {character.stance.requiresBalanceShift ? (
                     'Miss - Shift balance for 1 tech'
@@ -397,22 +391,20 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character }) => {
                     'No techniques'
                   )}
                 </>
-              ) : (
-                `Techniques: ${techniquesAllowed}`
-              )
-            ) : 'Not rolled'}
-          </span>
-          <button
-            className="small-btn"
-            onClick={() => rollStanceForCharacter(character.id)}
-          >
-            Roll
-          </button>
+              ) : 'Not rolled'}
+            </span>
+            <button
+              className="small-btn"
+              onClick={() => rollStanceForCharacter(character.id)}
+            >
+              Roll
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Manual Techniques Modifier */}
-      {character.stance && (
+      {isPc && character.stance && (
         <div className="stat-row">
           <label>Tech Adjust:</label>
           <div className="techniques-section">
@@ -609,6 +601,94 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character }) => {
         </div>
       )}
 
+      {/* Selected Techniques for Combat (NPC only) */}
+      {!isPc && (
+        <div className="combat-techniques-section">
+          <div className="section-header">
+            <label>Combat Techniques:</label>
+            <button
+              className="small-btn clear-btn"
+              onClick={() => clearSelectedTechniques(character.id)}
+              title="Clear all selected techniques"
+            >
+              Clear
+            </button>
+          </div>
+          <div className="selected-techniques">
+            {character.selectedTechniques.length === 0 ? (
+              <p className="no-techniques">No techniques selected for this exchange</p>
+            ) : (
+              character.selectedTechniques.map((tech) => (
+                <div key={tech.techniqueId} className="selected-tech-item">
+                  <span>{tech.name}</span>
+                  <button
+                    className="remove-item-btn"
+                    onClick={() => unselectTechnique(character.id, tech.techniqueId)}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+          <div className="technique-availability">
+            {(() => {
+              const maxTechniques = Math.abs(character.balance.current) + 1 + character.techniquesModifier;
+              const current = character.selectedTechniques.length;
+              return `Techniques: ${current} / ${maxTechniques} (Balance ${character.balance.current >= 0 ? '+' : ''}${character.balance.current} + 1)`;
+            })()}
+          </div>
+          <div className="technique-selector">
+            <div className="basic-technique-selector">
+              <select
+                value={selectedBasicTechnique}
+                onChange={(e) => setSelectedBasicTechnique(e.target.value)}
+                className="basic-tech-select"
+              >
+                <option value="">Select technique...</option>
+                {TECHNIQUES
+                  .filter(tech => {
+                    // Must match approach
+                    if (!tech.approaches.includes(character.approach)) return false;
+                    // If NPC has availableTechniques list, only show those
+                    if (character.type === 'npc' && character.availableTechniques) {
+                      return character.availableTechniques.includes(tech.name);
+                    }
+                    // Otherwise, show all techniques for this approach
+                    return true;
+                  })
+                  .map((tech) => (
+                    <option key={tech.name} value={tech.name}>
+                      {tech.name}
+                    </option>
+                  ))}
+              </select>
+              <button
+                className="small-btn"
+                onClick={() => {
+                  if (!selectedBasicTechnique) return;
+                  const maxTechniques = Math.abs(character.balance.current) + 1 + character.techniquesModifier;
+                  if (character.selectedTechniques.length < maxTechniques) {
+                    const npcTech: SelectedTechnique = {
+                      techniqueId: `npc-${generateId()}`,
+                      name: selectedBasicTechnique,
+                      level: 'basic',
+                      costsFatigue: false,
+                    };
+                    selectTechnique(character.id, npcTech);
+                    setSelectedBasicTechnique('');
+                  }
+                }}
+                disabled={!selectedBasicTechnique || character.selectedTechniques.length >= Math.abs(character.balance.current) + 1 + character.techniquesModifier}
+                title="Add selected technique"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Fatigue */}
       <div className="stat-row">
         <label>Fatigue:</label>
@@ -620,11 +700,13 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character }) => {
           >
             -
           </button>
-          <span className="fatigue-value">{character.fatigue}</span>
+          <span className={`fatigue-value ${character.fatigue >= character.maxFatigue ? 'max-fatigue' : ''}`}>
+            {character.fatigue} / {character.maxFatigue}
+          </span>
           <button
             className="small-btn"
             onClick={() => modifyFatigue(character.id, 1)}
-            disabled={character.fatigue === 5}
+            disabled={character.fatigue >= character.maxFatigue}
           >
             +
           </button>

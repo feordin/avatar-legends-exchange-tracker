@@ -173,11 +173,17 @@
 }
 
 .fatigue-value {
-  min-width: 30px;
+  min-width: 50px;
   text-align: center;
   font-weight: bold;
   font-size: 1rem;
   color: #ff9f43;
+}
+
+.fatigue-value.max-fatigue {
+  color: #e74c3c;
+  font-weight: 900;
+  text-shadow: 0 0 5px rgba(231, 76, 60, 0.5);
 }
 
 /* Balance */

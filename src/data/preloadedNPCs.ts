@@ -13,7 +13,7 @@ export function createNPCTemplate(
   difficulty: 'minor' | 'moderate' | 'major',
   maxFatigue: number,
   markedConditions: string[],
-  _techniques: string[], // For documentation - techniques the NPC typically uses
+  techniques: string[], // Techniques the NPC can use
   leftPrinciple?: string,
   rightPrinciple?: string
 ): SavedTemplate {
@@ -63,6 +63,7 @@ export function createNPCTemplate(
     conditions,
     statuses: [],
     modifiers: [],
+    availableTechniques: techniques.length > 0 ? techniques : undefined,
     baseState: {
       fatigue: 0,
       balance: createDefaultBalance(leftPrinciple || 'Control', rightPrinciple || 'Freedom'),
@@ -80,38 +81,66 @@ export function createNPCTemplate(
   };
 }
 
+// All basic techniques (for Major and Master NPCs)
+const ALL_BASIC_TECHNIQUES = [
+  'Ready', 'Seize a Position', 'Retaliate',
+  'Strike', 'Pressure', 'Smash',
+  'Test Balance', 'Bolster or Hinder', 'Commit'
+];
+
 /**
  * Pre-loaded NPC templates from Avatar Legends Core Book pages 290-291
  */
 export const PRELOADED_NPC_TEMPLATES: SavedTemplate[] = [
-  // Minor NPCs (3 fatigue)
-  createNPCTemplate('Town Guard', 'A local guard', 'minor', 3, ['troubled'], [], 'Control', 'Freedom'),
-  createNPCTemplate('Village Hunter', 'A skilled trapper and hunter', 'minor', 3, ['angry'], [], 'Control', 'Freedom'),
-  createNPCTemplate('Trader', 'A traveling merchant', 'minor', 3, ['afraid'], [], 'Control', 'Freedom'),
-  createNPCTemplate('Shopkeeper', 'An owner of a successful city shop', 'minor', 3, ['insecure'], [], 'Control', 'Freedom'),
-  createNPCTemplate('Tough Bruiser', 'Local muscle', 'minor', 3, ['afraid'], [], 'Control', 'Freedom'),
-  createNPCTemplate('Soldier', 'A trained grunt of a larger unit', 'minor', 3, ['guilty'], [], 'Control', 'Freedom'),
+  // Minor NPCs (3 fatigue) - Limited technique sets
+  createNPCTemplate('Town Guard', 'A local guard', 'minor', 3, ['troubled'],
+    ['Strike', 'Pressure', 'Ready', 'Retaliate'], 'Control', 'Freedom'),
+  createNPCTemplate('Village Hunter', 'A skilled trapper and hunter', 'minor', 3, ['angry'],
+    ['Strike', 'Seize a Position', 'Ready', 'Retaliate'], 'Control', 'Freedom'),
+  createNPCTemplate('Trader', 'A traveling merchant', 'minor', 3, ['afraid'],
+    ['Pressure', 'Ready', 'Test Balance', 'Bolster or Hinder'], 'Control', 'Freedom'),
+  createNPCTemplate('Shopkeeper', 'An owner of a successful city shop', 'minor', 3, ['insecure'],
+    ['Pressure', 'Ready', 'Test Balance', 'Bolster or Hinder'], 'Control', 'Freedom'),
+  createNPCTemplate('Tough Bruiser', 'Local muscle', 'minor', 3, ['afraid'],
+    ['Strike', 'Smash', 'Ready', 'Retaliate'], 'Control', 'Freedom'),
+  createNPCTemplate('Soldier', 'A trained grunt of a larger unit', 'minor', 3, ['guilty'],
+    ['Strike', 'Retaliate', 'Ready', 'Bolster or Hinder'], 'Control', 'Freedom'),
 
-  // Major NPCs (5 fatigue)
-  createNPCTemplate('Outlaw Captain', 'A leader of pirates, bandits, or criminals', 'major', 5, ['angry', 'afraid', 'foolish'], ['Sense Environment', 'Duck and Twist'], 'Survival', 'Honor'),
-  createNPCTemplate('Champion Pit-Fighter', 'A champion pit-fighter', 'major', 5, ['angry', 'desperate', 'guilty'], ['Charge', 'Forceful Blow'], 'Discipline', 'Freedom'),
-  createNPCTemplate('Military Commander', 'A trained and capable military commander', 'major', 5, ['angry', 'jaded', 'troubled'], ['Rapid Assessment'], 'Duty', 'Freedom'),
-  createNPCTemplate('Noble', 'A member of the ruling class', 'major', 5, ['despondent', 'hopeless', 'insecure'], [], 'Freedom', 'Control'),
-  createNPCTemplate('Political Leader', 'A local mayor, magistrate, or governor', 'major', 5, ['afraid', 'frantic', 'insecure'], [], 'Community', 'Independence'),
+  // Major NPCs (5 fatigue) - All basic techniques + advanced techniques
+  createNPCTemplate('Outlaw Captain', 'A leader of pirates, bandits, or criminals', 'major', 5, ['angry', 'afraid', 'foolish'],
+    [...ALL_BASIC_TECHNIQUES, 'Sense Environment', 'Duck and Twist'], 'Survival', 'Honor'),
+  createNPCTemplate('Champion Pit-Fighter', 'A champion pit-fighter', 'major', 5, ['angry', 'desperate', 'guilty'],
+    [...ALL_BASIC_TECHNIQUES, 'Charge', 'Forceful Blow'], 'Discipline', 'Freedom'),
+  createNPCTemplate('Military Commander', 'A trained and capable military commander', 'major', 5, ['angry', 'jaded', 'troubled'],
+    [...ALL_BASIC_TECHNIQUES, 'Rapid Assessment'], 'Duty', 'Freedom'),
+  createNPCTemplate('Noble', 'A member of the ruling class', 'major', 5, ['despondent', 'hopeless', 'insecure'],
+    ALL_BASIC_TECHNIQUES, 'Freedom', 'Control'),
+  createNPCTemplate('Political Leader', 'A local mayor, magistrate, or governor', 'major', 5, ['afraid', 'frantic', 'insecure'],
+    ALL_BASIC_TECHNIQUES, 'Community', 'Independence'),
 
-  // Master NPCs (10 fatigue)
-  createNPCTemplate('Accomplished General', 'A weaponmaster in command of extensive forces', 'major', 10, ['afraid', 'angry', 'disgusted', 'guilty', 'morose'], ['Feint', 'Turn the Tables', 'Pinpoint Thrust'], 'Ambition', 'Humility'),
-  createNPCTemplate('Obsessive Inventor', 'A creator of dangerous and innovative devices', 'major', 10, ['afraid', 'angry', 'insecure', 'manic', 'offended'], ['Jolt', 'Collect Materials', 'Wind Up'], 'Progress', 'Tradition'),
-  createNPCTemplate('Rebel Leader', 'A rebel war leader in the Earth Kingdom', 'major', 10, ['afraid', 'angry', 'guilty', 'hopeless', 'humiliated'], ['Earth Armor', 'Stone Shield'], 'Justice', 'Stability'),
-  createNPCTemplate('Triad Leader', 'An infamous firebending Republic City criminal', 'major', 10, ['afraid', 'fixated', 'frustrated', 'insecure', 'vengeful'], ['Lightning Blast', 'Flame Knives'], 'Role', 'Freedom'),
-  createNPCTemplate('Water Tribe Chief', 'An experienced and trusted Water Tribe leader', 'major', 10, ['angry', 'guilty', 'insecure', 'stubborn', 'troubled'], ['Crushing Grip of Seas', 'Stream the Water'], 'Tradition', 'Progress'),
+  // Master NPCs (10 fatigue) - All basic techniques + advanced techniques
+  createNPCTemplate('Accomplished General', 'A weaponmaster in command of extensive forces', 'major', 10, ['afraid', 'angry', 'disgusted', 'guilty', 'morose'],
+    [...ALL_BASIC_TECHNIQUES, 'Feint', 'Turn the Tables', 'Pinpoint Thrust'], 'Ambition', 'Humility'),
+  createNPCTemplate('Obsessive Inventor', 'A creator of dangerous and innovative devices', 'major', 10, ['afraid', 'angry', 'insecure', 'manic', 'offended'],
+    [...ALL_BASIC_TECHNIQUES, 'Jolt', 'Collect Materials', 'Wind Up'], 'Progress', 'Tradition'),
+  createNPCTemplate('Rebel Leader', 'A rebel war leader in the Earth Kingdom', 'major', 10, ['afraid', 'angry', 'guilty', 'hopeless', 'humiliated'],
+    [...ALL_BASIC_TECHNIQUES, 'Earth Armor', 'Stone Shield'], 'Justice', 'Stability'),
+  createNPCTemplate('Triad Leader', 'An infamous firebending Republic City criminal', 'major', 10, ['afraid', 'fixated', 'frustrated', 'insecure', 'vengeful'],
+    [...ALL_BASIC_TECHNIQUES, 'Lightning Blast', 'Flame Knives'], 'Role', 'Freedom'),
+  createNPCTemplate('Water Tribe Chief', 'An experienced and trusted Water Tribe leader', 'major', 10, ['angry', 'guilty', 'insecure', 'stubborn', 'troubled'],
+    [...ALL_BASIC_TECHNIQUES, 'Crushing Grip of Seas', 'Stream the Water'], 'Tradition', 'Progress'),
 
-  // NPC Groups
-  createNPCTemplate('Small Mob', 'A small mob of minor thugs', 'major', 5, ['angry', 'insecure', 'troubled'], ['Overwhelm'], 'Retribution', 'Mercy'),
-  createNPCTemplate('Military Squad', 'A small squad of trained soldiers', 'major', 5, ['afraid', 'guilty', 'insecure'], ['Focused Fire', 'Protect Objective'], 'Duty', 'Freedom'),
-  createNPCTemplate('Palace Guards', 'A medium group of trained guards, eager to serve', 'major', 10, ['afraid', 'angry', 'desperate', 'guilty', 'humiliated'], ['Coordination', 'Shield Wall', 'Swarm'], 'Loyalty', 'Independence'),
-  createNPCTemplate('Republic City Police Squad', 'A medium group of Metalbenders', 'major', 10, ['distracted', 'overbearing', 'guilty', 'troubled', 'zealous'], ['Metal Bindings', 'Spread Out', 'Test Defenses'], 'Results', 'Compassion'),
-  createNPCTemplate('Elite Rebels', 'A medium group of elite revolutionaries', 'major', 10, ['afraid', 'guilty', 'hopeless', 'insecure', 'overconfident'], ['Scatter and Regroup', 'Swarm', 'Surround'], 'Freedom', 'Control'),
+  // NPC Groups - All basic techniques + group techniques
+  createNPCTemplate('Small Mob', 'A small mob of minor thugs', 'major', 5, ['angry', 'insecure', 'troubled'],
+    [...ALL_BASIC_TECHNIQUES, 'Overwhelm'], 'Retribution', 'Mercy'),
+  createNPCTemplate('Military Squad', 'A small squad of trained soldiers', 'major', 5, ['afraid', 'guilty', 'insecure'],
+    [...ALL_BASIC_TECHNIQUES, 'Focused Fire', 'Protect Objective'], 'Duty', 'Freedom'),
+  createNPCTemplate('Palace Guards', 'A medium group of trained guards, eager to serve', 'major', 10, ['afraid', 'angry', 'desperate', 'guilty', 'humiliated'],
+    [...ALL_BASIC_TECHNIQUES, 'Coordination', 'Shield Wall', 'Swarm'], 'Loyalty', 'Independence'),
+  createNPCTemplate('Republic City Police Squad', 'A medium group of Metalbenders', 'major', 10, ['distracted', 'overbearing', 'guilty', 'troubled', 'zealous'],
+    [...ALL_BASIC_TECHNIQUES, 'Metal Bindings', 'Spread Out', 'Test Defenses'], 'Results', 'Compassion'),
+  createNPCTemplate('Elite Rebels', 'A medium group of elite revolutionaries', 'major', 10, ['afraid', 'guilty', 'hopeless', 'insecure', 'overconfident'],
+    [...ALL_BASIC_TECHNIQUES, 'Scatter and Regroup', 'Swarm', 'Surround'], 'Freedom', 'Control'),
 ];
 
 /**

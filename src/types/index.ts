@@ -115,6 +115,7 @@ export interface NPC extends Character {
   type: 'npc';
   role?: string; // Brief descriptor
   difficulty?: 'minor' | 'moderate' | 'major'; // NPC power level
+  availableTechniques?: string[]; // Techniques this NPC can use (if not specified, can use all)
 }
 
 // Union type for all characters
