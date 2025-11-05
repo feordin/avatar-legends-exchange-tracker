@@ -360,6 +360,18 @@ export const createDefaultBalance = (
   max: 3,
 });
 
+// Create NPC balance (unidirectional, 0 to max)
+export const createNPCBalance = (
+  principle: string = 'Control',
+  maxBalance: number = 3
+): Balance => ({
+  leftPrinciple: '', // NPCs don't have a left principle
+  rightPrinciple: principle,
+  current: 0,
+  min: 0, // NPCs start at 0 and can only move up
+  max: maxBalance,
+});
+
 // Calculate technique availability for PCs in combat
 export interface TechniqueAvailability {
   basicMasteredCount: number; // How many basic or mastered can be used

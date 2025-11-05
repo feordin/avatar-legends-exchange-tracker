@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useExchange } from '../context/ExchangeContext';
 import { useTemplates } from '../hooks/useTemplates';
 import type { PC, NPC, Condition } from '../types';
-import { createDefaultBalance, PLAYBOOK_BALANCE } from '../utils/helpers';
+import { createDefaultBalance, createNPCBalance, PLAYBOOK_BALANCE } from '../utils/helpers';
 import './AddCharacterForm.css';
 
 interface AddCharacterFormProps {
@@ -37,13 +37,10 @@ const AddCharacterForm: React.FC<AddCharacterFormProps> = ({ type, onClose }) =>
       const principles = PLAYBOOK_BALANCE[selectedPlaybook];
       balance = createDefaultBalance(principles.left, principles.right);
     } else {
-      // For NPCs, get from form inputs
-      const leftPrinciple = formData.get('leftPrinciple') as string;
-      const rightPrinciple = formData.get('rightPrinciple') as string;
-      balance = createDefaultBalance(
-        leftPrinciple || 'Control',
-        rightPrinciple || 'Freedom'
-      );
+      // For NPCs, use single principle (unidirectional balance)
+      const principle = formData.get('principle') as string;
+      const maxBalance = parseInt(formData.get('maxBalance') as string) || 3;
+      balance = createNPCBalance(principle || 'Control', maxBalance);
     }
 
     // Determine maxFatigue based on character type
@@ -104,12 +101,14 @@ const AddCharacterForm: React.FC<AddCharacterFormProps> = ({ type, onClose }) =>
     } else {
       const role = formData.get('role') as string;
       const difficulty = formData.get('difficulty') as 'minor' | 'moderate' | 'major';
+      const principle = formData.get('principle') as string;
 
       const npc: Omit<NPC, 'id'> = {
         ...baseCharacter,
         type: 'npc',
         role: role || undefined,
         difficulty: difficulty || undefined,
+        principle: principle || 'Control',
       };
 
       if (saveAsTemplate) {
@@ -250,31 +249,35 @@ const AddCharacterForm: React.FC<AddCharacterFormProps> = ({ type, onClose }) =>
         </>
       )}
 
-      {/* Balance principles are now automatic for PCs based on playbook */}
+      {/* Balance principle for NPCs (single principle, unidirectional) */}
       {type === 'npc' && (
-        <div className="form-row">
+        <>
           <div className="form-group">
-            <label htmlFor="leftPrinciple">Left Principle</label>
+            <label htmlFor="principle">Principle</label>
             <input
               type="text"
-              id="leftPrinciple"
-              name="leftPrinciple"
-              placeholder="e.g., Control"
+              id="principle"
+              name="principle"
+              placeholder="e.g., Control, Duty, Freedom"
               defaultValue="Control"
             />
           </div>
-
           <div className="form-group">
-            <label htmlFor="rightPrinciple">Right Principle</label>
-            <input
-              type="text"
-              id="rightPrinciple"
-              name="rightPrinciple"
-              placeholder="e.g., Freedom"
-              defaultValue="Freedom"
-            />
+            <label htmlFor="maxBalance">Max Balance</label>
+            <select
+              id="maxBalance"
+              name="maxBalance"
+              defaultValue="3"
+            >
+              <option value="1">1 (Minor NPCs)</option>
+              <option value="2">2 (Major NPCs)</option>
+              <option value="3">3 (Master NPCs)</option>
+            </select>
+            <small style={{ color: '#999', marginTop: '0.25rem', display: 'block' }}>
+              NPCs have a single principle and their balance moves from 0 to max in one direction only.
+            </small>
           </div>
-        </div>
+        </>
       )}
 
       <div className="form-group save-template-section">

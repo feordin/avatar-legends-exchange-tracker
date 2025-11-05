@@ -717,21 +717,49 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character }) => {
       <div className="stat-row">
         <label>Balance:</label>
         <div className="balance-section">
-          <button
-            className="small-btn"
-            onClick={() => modifyBalance(character.id, -1)}
-            disabled={character.balance.current === character.balance.min}
-          >
-            ←
-          </button>
-          <span className="balance-value">{getBalanceDisplay(character.balance)}</span>
-          <button
-            className="small-btn"
-            onClick={() => modifyBalance(character.id, 1)}
-            disabled={character.balance.current === character.balance.max}
-          >
-            →
-          </button>
+          {isPc ? (
+            <>
+              {/* PC: Bidirectional balance with two principles */}
+              <button
+                className="small-btn"
+                onClick={() => modifyBalance(character.id, -1)}
+                disabled={character.balance.current === character.balance.min}
+              >
+                ←
+              </button>
+              <span className="balance-value">{getBalanceDisplay(character.balance)}</span>
+              <button
+                className="small-btn"
+                onClick={() => modifyBalance(character.id, 1)}
+                disabled={character.balance.current === character.balance.max}
+              >
+                →
+              </button>
+            </>
+          ) : (
+            <>
+              {/* NPC: Unidirectional balance with single principle (but can go up and down) */}
+              <button
+                className="small-btn"
+                onClick={() => modifyBalance(character.id, -1)}
+                disabled={character.balance.current === character.balance.min}
+                title={`Decrease ${character.principle || character.balance.rightPrinciple}`}
+              >
+                -
+              </button>
+              <span className="balance-value">
+                {character.principle || character.balance.rightPrinciple} {character.balance.current} / {character.balance.max}
+              </span>
+              <button
+                className="small-btn"
+                onClick={() => modifyBalance(character.id, 1)}
+                disabled={character.balance.current === character.balance.max}
+                title={`Increase ${character.principle || character.balance.rightPrinciple}`}
+              >
+                +
+              </button>
+            </>
+          )}
         </div>
       </div>
 
